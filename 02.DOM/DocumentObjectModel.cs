@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.ComponentModel.Design.Serialization;
     using System.Runtime.InteropServices.ComTypes;
+    using System.Text;
     using _02.DOM.Interfaces;
     using _02.DOM.Models;
 
@@ -35,12 +36,53 @@
 
         public IHtmlElement GetElementByType(ElementType type)
         {
-            throw new NotImplementedException();
+           IHtmlElement element = this.GetElementByType(this.Root,type);
+            return element;
+        }
+
+        private IHtmlElement GetElementByType(IHtmlElement root, ElementType type)
+        {
+           Queue<IHtmlElement> queue = new Queue<IHtmlElement>();
+            queue.Enqueue(root);
+            while (queue.Count > 0)
+            {
+                var currentNode = queue.Dequeue();
+                if (currentNode.Type == type)
+                {
+                    return currentNode;
+                }
+                foreach (var item in currentNode.Children)
+                {
+                    queue.Enqueue(item);
+                }
+            }
+            return null;
         }
 
         public List<IHtmlElement> GetElementsByType(ElementType type)
         {
-            throw new NotImplementedException();
+            List<IHtmlElement> elements = new List<IHtmlElement>();
+            this.GetElementsByTypeDfs(this.Root, elements, type);
+            return elements;
+        }
+
+        private void GetElementsByTypeDfs(IHtmlElement node, List<IHtmlElement> elements, ElementType type)
+        {
+            if(node == null)
+            {
+                return;
+            }
+            if(node.Type == type)
+            {
+                elements.Add(node);
+            }
+            foreach (var child in node.Children)
+            {
+                this.GetElementsByTypeDfs(child, elements, type);
+            }
+
+            
+
         }
 
         public bool Contains(IHtmlElement htmlElement)
@@ -275,5 +317,22 @@
             }
             return null;
         }
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            ToStringHelper(sb, Root, 0);
+            return sb.ToString().TrimEnd();
+        }
+
+        private void ToStringHelper(StringBuilder sb, IHtmlElement node, int indent)
+        {
+            sb.AppendLine($"{new string(' ', indent)}{node.GetType().Name}");
+            indent += 2;
+            foreach (var child in node.Children)
+            {
+                ToStringHelper(sb, child, indent);
+            }
+        }
+
     }
 }
